@@ -1,1 +1,1 @@
-# zealot_Nft
+# Solana LzApp ONFT721 
