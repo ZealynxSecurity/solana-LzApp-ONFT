@@ -42,10 +42,10 @@ pub fn compose_from(message: &[u8]) -> [u8; 32] {
     compose_from
 }
 
-pub fn compose_msg(message: &[u8]) -> Vec<u8> {
+pub fn compose_msg(message: &[u8]) -> Option<Vec<u8>> {
     if message.len() > COMPOSE_MSG_OFFSET {
-        message[COMPOSE_MSG_OFFSET..].to_vec()
+        Some(message[COMPOSE_MSG_OFFSET..].to_vec())
     } else {
-        Vec::new()
+        Some(Vec::new())
     }
 }

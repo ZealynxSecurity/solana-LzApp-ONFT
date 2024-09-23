@@ -10,11 +10,12 @@ pub struct TransferAdmin<'info> {
         has_one = admin @ONftError::Unauthorized
     )]
     pub ONft_config: Account<'info, ONftConfig>,
+    pub new_admin: Signer<'info>,
 }
 
 impl TransferAdmin<'_> {
     pub fn apply(ctx: &mut Context<TransferAdmin>, params: &TransferAdminParams) -> Result<()> {
-        ctx.accounts.ONft_config.admin = params.admin;
+        ctx.accounts.ONft_config.admin = new_admin;
         Ok(())
     }
 }

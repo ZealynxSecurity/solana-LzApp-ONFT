@@ -36,6 +36,10 @@ pub struct InitONft<'info> {
 
 impl InitONft<'_> {
     pub fn apply(ctx: &mut Context<InitONft>, params: &InitONftParams) -> Result<()> {
+
+        if !is_supported_mint(&ctx.accounts.mint) {
+            return Err(Error::UnsupportedBaseMint.into());
+        }
         ctx.accounts.ONft_config.bump = ctx.bumps.ONft_config;
         ctx.accounts.ONft_config.token_mint = ctx.accounts.token_mint.key();
         ctx.accounts.ONft_config.ext = ONftConfigExt::Native(params.mint_authority);
@@ -53,6 +57,21 @@ impl InitONft<'_> {
             ctx.remaining_accounts,
             oapp_signer,
         )
+    }
+
+    pub fn is_supported_mint(mint_account: &InterfaceAccount<Mint>) -> bool {
+        let mint_info = mint_account.to_account_info();
+        let mint_data = mint_info.data.borrow();
+        let mint = StateWithExtensions::<spl_token_2022::state::Mint>::unpack(&mint_data).unwrap();
+    
+        let extensions = mint.get_extension_types().unwrap();
+        for e in extensions {
+            if e == ExtensionType::MintCloseAuthority {
+                return false;
+            }
+        }
+    
+        true
     }
 }
 

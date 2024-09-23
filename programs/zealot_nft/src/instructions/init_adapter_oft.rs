@@ -38,6 +38,9 @@ pub struct InitAdapterONft<'info> {
 
 impl InitAdapterONft<'_> {
     pub fn apply(ctx: &mut Context<InitAdapterONft>, params: &InitAdapterONftParams) -> Result<()> {
+        if ctx.accounts.token_mint.freeze_authority.is_some() {
+            return Err(ONftError::MintHasFreezeAuthority.into());
+        }
         ctx.accounts.ONft_config.bump = ctx.bumps.ONft_config;
         ctx.accounts.ONft_config.token_mint = ctx.accounts.token_mint.key();
         ctx.accounts.ONft_config.ext = ONftConfigExt::Adapter(ctx.accounts.token_escrow.key());
@@ -54,7 +57,16 @@ impl InitAdapterONft<'_> {
             ctx.accounts.token_mint.decimals,
             ctx.remaining_accounts,
             oapp_signer,
-        )
+        )?;
+
+        emit!(AdapterONftInitialized {
+            ONft_config: ctx.accounts.ONft_config.key(),
+            token_mint: ctx.accounts.token_mint.key(),
+            token_escrow: ctx.accounts.token_escrow.key(),
+            admin: params.admin,
+            shared_decimals: params.shared_decimals,
+        });
+        Ok(())
     }
 }
 

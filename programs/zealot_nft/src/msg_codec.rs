@@ -3,25 +3,29 @@ use crate::*;
 const SEND_TO_OFFSET: usize = 0;
 const SEND_AMOUNT_SD_OFFSET: usize = 32;
 const COMPOSE_MSG_OFFSET: usize = 40;
+const MAX_MSG_SIZE: usize = 700;
 
 pub fn encode(
     send_to: [u8; 32],
     amount_sd: u64,
     sender: Pubkey,
     compose_msg: &Option<Vec<u8>>,
-) -> Vec<u8> {
+) -> Result<Vec<u8>, ONftError> {
     if let Some(msg) = compose_msg {
-        let mut encoded = Vec::with_capacity(72 + msg.len()); // 32 + 8 + 32
+        if msg.len() > MAX_MSG_SIZE {
+            return Err(ONftError::MessageTooLarge);
+        }
+        let mut encoded = Vec::with_capacity(72 + msg.len());
         encoded.extend_from_slice(&send_to);
         encoded.extend_from_slice(&amount_sd.to_be_bytes());
         encoded.extend_from_slice(sender.to_bytes().as_ref());
         encoded.extend_from_slice(&msg);
-        encoded
+        Ok(encoded)
     } else {
-        let mut encoded = Vec::with_capacity(40); // 32 + 8
+        let mut encoded = Vec::with_capacity(40);
         encoded.extend_from_slice(&send_to);
         encoded.extend_from_slice(&amount_sd.to_be_bytes());
-        encoded
+        Ok(encoded)
     }
 }
 

@@ -13,6 +13,7 @@ pub struct ONftConfig {
     // mutable
     pub admin: Pubkey,
     pub ext: ONftConfigExt,
+    pub fee_percentage: u64, 
 }
 
 #[derive(InitSpace, Clone, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
@@ -37,8 +38,17 @@ impl ONftConfig {
         } else {
             ENDPOINT_ID
         };
-
-        require!(decimals >= shared_decimals, ONftError::InvalidDecimals);
+        
+        require!(
+            ctx.accounts.token_mint.decimals - params.shared_decimals <= 9,
+            ONFTError::InvalidDecimals
+        );
+        
+        require!(
+            ctx.accounts.token_mint.decimals <= 12,
+            ONFTError::InvalidDecimals
+        );
+        
         self.ld2sd_rate = 10u64.pow((decimals - shared_decimals) as u32);
 
         // register oapp
@@ -48,7 +58,17 @@ impl ONftConfig {
             accounts,
             &[ONft_SEED, &get_ONft_config_seed(self).to_bytes(), &[self.bump]],
             RegisterOAppParams { delegate: self.admin },
-        )
+        )?;
+
+        emit!(ONftConfigInitialized {
+            admin: self.admin,
+            endpoint_program: self.endpoint_program,
+            shared_decimals,
+            decimals,
+            ld2sd_rate: self.ld2sd_rate,
+        });
+
+        Ok(())
     }
 
     pub fn ld2sd(&self, amount_ld: u64) -> u64 {

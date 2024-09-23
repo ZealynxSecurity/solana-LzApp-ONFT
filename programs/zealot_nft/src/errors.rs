@@ -1,5 +1,4 @@
 use anchor_lang::prelude::error_code;
-
 #[error_code]
 pub enum ONftError {
     Unauthorized,
@@ -12,4 +11,8 @@ pub enum ONftError {
     InvalidOptions,
     InvalidEndpointProgram,
     RateLimitExceeded,
+    MessageTooLarge,
+    Paused,
+    UnsupportedBaseMint,
+    MintHasFreezeAuthority,
 }
